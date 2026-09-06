@@ -1,4 +1,4 @@
-# Finverse — Fraud Detection & Risk Monitoring
+# Finverse: Instant Fraud Alerts
 
 > **Machine-learning based fraud detection project using BankSim transaction data, behavioral feature engineering, XGBoost and an interactive monitoring dashboard.**
 
