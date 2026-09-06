@@ -1,283 +1,269 @@
 # Finverse: Instant Fraud Alerts
 
-> **Machine-learning based fraud detection project using BankSim transaction data, behavioral feature engineering, XGBoost and an interactive monitoring dashboard.**
+## Project Overview
 
-## 📌 Project Overview
+Finverse: Instant Fraud Alerts is a machine learning based fraud detection project designed to identify potentially fraudulent financial transactions and support faster fraud monitoring.
 
-**Finverse** is a fraud-detection and risk-monitoring project built around transaction-level data.
+The project uses the BankSim transaction dataset and applies exploratory data analysis, behavioral feature engineering and XGBoost classification to identify fraudulent transactions.
 
-The project has two practical goals:
-
-1. **Identify suspicious transaction patterns** using machine learning.
-2. **Present fraud-related insights clearly** through a monitoring dashboard so that suspicious activity can be reviewed faster.
-
-The analysis uses the **BankSim** transaction dataset. The notebook performs exploratory analysis, behavioral feature engineering, model training with **XGBoost**, and evaluation using **AUPRC (Average Precision)**.
+The current implementation focuses on transaction analysis and machine learning model development. Real-time transaction streaming and automated alert generation are planned as future enhancements.
 
 ---
 
-## 🎯 Problem Statement
+## Problem Statement
 
-Financial transaction datasets are usually highly imbalanced: genuine transactions are much more common than fraudulent transactions.
+Financial transaction datasets contain a large number of genuine transactions and a much smaller number of fraudulent transactions.
 
-A useful fraud-detection system therefore needs to:
+Because fraudulent transactions are rare and may follow different behavioral patterns, identifying them using only individual transaction attributes can be challenging.
 
-- understand normal transaction behavior,
-- identify unusual patterns,
-- handle class imbalance,
-- create meaningful behavioral features,
-- evaluate the model using a metric suitable for imbalanced classification,
-- and make the results easy to monitor.
+Finverse aims to identify suspicious transaction patterns using machine learning and transaction behavior-based features.
 
 ---
 
-## 🧠 Solution Approach
+## Project Objective
 
-The project follows this workflow:
+The main objectives of Finverse are:
+
+- Analyze financial transaction data.
+- Identify patterns associated with fraudulent transactions.
+- Create behavioral features based on recent transaction activity.
+- Train a machine learning model for fraud detection.
+- Evaluate the model using a suitable metric for imbalanced classification.
+- Present fraud-related insights through a monitoring dashboard concept.
+
+---
+
+## Dataset
+
+The project uses the BankSim transaction dataset.
+
+### Dataset Statistics
+
+| Metric | Value |
+|---|---:|
+| Total Transactions | 594,643 |
+| Fraud Transactions | 7,200 |
+| Genuine Transactions | 587,443 |
+| Fraud Rate | Approximately 1.21% |
+
+The dataset is highly imbalanced because genuine transactions greatly outnumber fraudulent transactions.
+
+The raw dataset is not included in this repository.
+
+---
+
+## Technologies Used
+
+- Python
+- Pandas
+- NumPy
+- Matplotlib
+- Seaborn
+- Scikit-learn
+- XGBoost
+- Jupyter Notebook
+- Streamlit
+
+---
+
+## Project Workflow
 
 ```text
 BankSim Transaction Data
           ↓
-Data Preparation
+Data Loading & Cleaning
           ↓
 Exploratory Data Analysis
           ↓
 Behavioral Feature Engineering
           ↓
-Label Encoding
+Categorical Encoding
           ↓
-Train / Test Split
+Train/Test Split
           ↓
 XGBoost Classifier
           ↓
 AUPRC Evaluation
           ↓
-Fraud Risk Insights
+Feature Importance
           ↓
-Monitoring Dashboard
+Fraud Risk Insights
 ```
 
 ---
 
-## 📊 Dataset
+## Exploratory Data Analysis
 
-The notebook loads:
+The project analyzes different characteristics of fraudulent transactions, including:
 
-```text
-bs140513_032310.csv
-```
+- Age
+- Gender
+- Transaction category
+- Transaction amount
+- Customer transaction behavior
 
-from the BankSim dataset.
-
-The analyzed data contains:
-
-- **594,643 total transactions**
-- **7,200 fraud transactions**
-- **587,443 non-fraud transactions**
-
-Fraud therefore represents only about **1.21%** of all transactions, making class imbalance an important consideration.
-
-> The dataset itself is intentionally **not included** in this repository because large/raw datasets should not be committed to GitHub. See `data/README.md` for the expected filename and setup.
+The analysis helps understand patterns within fraudulent transactions.
 
 ---
 
-## 🔎 Exploratory Analysis
+## Feature Engineering
 
-The notebook explores fraud transactions by:
+Behavioral features were created to capture recent transaction activity.
 
-- age code,
-- gender code,
-- transaction category,
-- transaction amount,
-- recent transaction frequency.
+### Customer Transaction Features
 
-Examples from the analysis:
+The project calculates customer transaction counts over:
 
-- Maximum fraud transaction amount: **8329.96**
-- Maximum genuine transaction amount: **2144.86**
-- The most frequent fraud age code in the notebook output is **2**
-- The most frequent fraud gender code is **F**
-- The most frequent fraud category in the shown output is **es_sportsandtoys**
+- 1 day
+- 7 days
+- 30 days
 
-These values are dataset-specific and should be interpreted in the context of BankSim.
+### Customer-Merchant Transaction Features
 
----
+The project also calculates customer-merchant transaction counts over:
 
-## ⚙️ Behavioral Feature Engineering
+- 1 day
+- 7 days
+- 30 days
 
-A key part of Finverse is creating features that describe **recent transaction behavior**.
-
-### Customer-level features
-
-For every customer, the notebook calculates transaction counts over:
-
-- previous 1 day,
-- previous 7 days,
-- previous 30 days.
-
-The resulting features are:
-
-```text
-count_1_day
-count_7_days
-count_30_days
-```
-
-### Customer–merchant features
-
-The same idea is applied to each customer–merchant pair:
-
-```text
-count_cust_merch_1_day
-count_cust_merch_7_days
-count_cust_merch_30_days
-```
-
-### Why are these useful?
-
-Suppose a customer normally makes a small number of transactions, but suddenly makes many transactions within a short period.
-
-That behavior can be a useful signal for a fraud-detection model.
-
-This is the main idea behind the behavioral feature engineering in the notebook.
+These features provide additional context about transaction frequency instead of looking only at the current transaction.
 
 ---
 
-## 🤖 Machine Learning Model
+## Categorical Encoding
 
-The notebook uses:
+The following categorical columns are label encoded:
 
-### **XGBoost Classifier**
+- Age
+- Gender
+- Category
 
-XGBoost is a gradient-boosting algorithm that builds multiple decision trees sequentially and combines them to make a strong predictive model.
-
-The notebook uses:
-
-```python
-XGBClassifier(
-    max_depth=3,
-    scale_pos_weights=weights,
-    n_jobs=4
-)
-```
-
-The categorical columns:
-
-```text
-age
-gender
-category
-```
-
-are label encoded before training.
+Customer, merchant, zipcode and step columns are removed from the final modeling features according to the notebook workflow.
 
 ---
 
-## ⚖️ Handling Class Imbalance
+## Machine Learning Model
 
-Fraud is much less common than genuine activity.
+The project uses an **XGBoost Classifier** for fraud detection.
 
-The notebook calculates:
+XGBoost is used to classify transactions into:
 
-```python
-weights = (Y == 0).sum() / (Y == 1).sum()
-```
+- Genuine transactions
+- Fraudulent transactions
 
-and passes this value as the positive-class weighting parameter to XGBoost.
-
-The purpose is to give more importance to the minority fraud class during model training.
+Because fraud is a minority class, positive-class weighting is used during model training to address class imbalance.
 
 ---
 
-## 📈 Model Evaluation
+## Model Evaluation
 
-The project uses **AUPRC / Average Precision**:
+Fraud detection is a highly imbalanced classification problem, so accuracy alone may not provide a useful picture of model performance.
 
-```python
-average_precision_score(
-    Ytest,
-    clf.predict_proba(Xtest)[:,1]
-)
-```
+The project uses **Area Under the Precision-Recall Curve (AUPRC)** as the primary evaluation metric.
 
-### Results
+### Model Comparison
 
-| Model | AUPRC |
+| Model Setup | AUPRC |
 |---|---:|
-| Standard features | **0.8331** |
-| Feature-engineered data | **0.8812** |
+| Standard Features | 0.8331 |
+| Feature-Engineered Features | 0.8812 |
 
-The feature-engineered model therefore improves AUPRC by approximately:
+Feature engineering improved AUPRC by approximately:
 
-- **0.0481 AUPRC points**
-- **4.81 percentage points**
-- **5.77% relative improvement**
+**0.0481 points**
 
-This is the strongest directly reproducible performance result from the supplied notebook.
+or
 
----
+**4.81 percentage points**
 
-## 📊 Why AUPRC?
-
-Fraud detection is an **imbalanced classification problem**.
-
-If we use accuracy alone, a model could appear strong simply because most transactions are genuine.
-
-AUPRC focuses more directly on the relationship between:
-
-- precision,
-- recall,
-- and the minority positive class.
-
-That makes it useful for evaluating fraud-ranking performance.
+This corresponds to approximately **5.77% relative improvement** over the baseline.
 
 ---
 
-## 🖥️ Monitoring Dashboard
+## Why AUPRC?
 
-The repository also contains a Streamlit dashboard prototype.
+Fraudulent transactions represent only a small percentage of all transactions.
 
-It is designed around the project workflow:
+In such an imbalanced dataset, accuracy can be misleading because a model could achieve high accuracy by mostly predicting the majority class.
+
+AUPRC focuses on the relationship between:
+
+- Precision
+- Recall
+
+for the positive class, which makes it useful for evaluating fraud detection performance.
+
+---
+
+## Dashboard / Monitoring
+
+The project includes a dashboard concept for presenting fraud-related insights.
+
+The dashboard focuses on:
+
+1. Fraud vs genuine transaction volume
+2. Fraud transaction amount analysis
+3. Fraud category distribution
+4. Fraud profile by age and gender
+5. Customer transaction-frequency behavior
+6. Model performance comparison
+7. Feature-engineering impact
+8. Risk-monitoring workflow
+
+---
+
+## Risk Monitoring Workflow
 
 ```text
-Transaction Data
-      ↓
-Risk / Fraud Analysis
-      ↓
-Monitoring KPIs
-      ↓
-Category & Amount Insights
-      ↓
+Transaction
+     ↓
+Behavioral Features
+     ↓
+XGBoost Score
+     ↓
+Risk Flag
+     ↓
 Analyst Review
 ```
 
-The dashboard includes:
+The current notebook demonstrates the analytical and machine learning pipeline.
 
-- transaction count,
-- fraud count,
-- genuine transaction count,
-- fraud rate,
-- fraud by category,
-- transaction amount distribution,
-- category filtering,
-- risk-monitoring workflow.
-
-Run it with:
-
-```bash
-streamlit run dashboard/dashboard.py
-```
+A production implementation can connect the scoring stage to a live transaction stream and an automated alerting service.
 
 ---
 
-## 📁 Repository Structure
+## Key Insights
+
+- The dataset contains a very small proportion of fraudulent transactions.
+- Fraud detection is therefore an imbalanced classification problem.
+- Recent customer transaction activity provides useful behavioral information.
+- Customer-merchant transaction frequency can provide additional context.
+- Feature engineering improved AUPRC from 0.8331 to 0.8812.
+- The dashboard concept helps present fraud-related findings in an easier monitoring format.
+
+---
+
+## Repository Structure
 
 ```text
-Finverse_GitHub_Repo/
+Finverse-Fraud-Detection/
 │
-├── README.md
-├── requirements.txt
-├── .gitignore
-├── LICENSE
+├── assets/
+│   └── Finverse_Dashboard_Presentation.pptx
+│
+├── dashboard/
+│   └── dashboard.py
+│
+├── data/
+│   └── README.md
+│
+├── docs/
+│   ├── PROJECT_EXPLANATION.md
+│   ├── INTERVIEW_QUESTIONS.md
+│   └── DASHBOARD_GUIDE.md
+│
+├── models/
+│   └── README.md
 │
 ├── notebooks/
 │   └── Finverse_Fraud_Detection_BankSim.ipynb
@@ -286,45 +272,26 @@ Finverse_GitHub_Repo/
 │   ├── feature_engineering.py
 │   └── model_training.py
 │
-├── dashboard/
-│   └── dashboard.py
-│
-├── data/
-│   └── README.md
-│
-├── models/
-│   └── README.md
-│
-├── docs/
-│   ├── PROJECT_EXPLANATION.md
-│   ├── INTERVIEW_QUESTIONS.md
-│   └── DASHBOARD_GUIDE.md
-│
-└── assets/
-    └── dashboard_slides.pptx
+├── .gitignore
+├── LICENSE
+├── README.md
+└── requirements.txt
 ```
 
 ---
 
-## 🚀 How to Run
+## How to Run the Project
 
 ### 1. Clone the repository
 
 ```bash
-git clone <YOUR_GITHUB_REPOSITORY_URL>
-cd Finverse_GitHub_Repo
+git clone https://github.com/Vedisha15/Finverse-Fraud-Detection.git
 ```
 
-### 2. Create a virtual environment
+### 2. Open the project folder
 
 ```bash
-python -m venv venv
-```
-
-Windows:
-
-```bash
-venv\Scripts\activate
+cd Finverse-Fraud-Detection
 ```
 
 ### 3. Install dependencies
@@ -333,17 +300,7 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 4. Add the dataset
-
-Place:
-
-```text
-bs140513_032310.csv
-```
-
-inside your local `data/` folder, or upload it directly to the Streamlit dashboard.
-
-### 5. Run the notebook
+### 4. Open the notebook
 
 Open:
 
@@ -351,85 +308,49 @@ Open:
 notebooks/Finverse_Fraud_Detection_BankSim.ipynb
 ```
 
-and run the cells in order.
+### 5. Dataset
 
-### 6. Run the dashboard
-
-```bash
-streamlit run dashboard/dashboard.py
-```
+Download the BankSim dataset separately and update the dataset path according to your local environment.
 
 ---
 
-## 💡 Key Insights
+## Future Scope
 
-### Insight 1 — Fraud is highly imbalanced
-
-Only a small fraction of transactions are labeled as fraud.
-
-This means fraud detection cannot rely on accuracy alone.
-
-### Insight 2 — Recent behavior is useful
-
-Customer-level and customer–merchant transaction counts over 1, 7 and 30 days provide additional behavioral information.
-
-### Insight 3 — Feature engineering improves model performance
-
-The AUPRC increased from **0.8331 to 0.8812** after adding behavioral features.
-
-### Insight 4 — Transaction amount can be a useful signal
-
-The maximum fraud amount in the notebook is considerably higher than the maximum genuine amount, although amount alone should not be treated as a fraud rule.
-
----
-
-## ⚠️ Important Project Scope Note
-
-The supplied notebook demonstrates the **data-analysis and ML modeling pipeline**.
-
-The production-style concept of:
-
-```text
-live transaction → model score → instant alert → analyst dashboard
-```
-
-is the intended monitoring workflow.
-
-For a production deployment, the model would need to be connected to a live transaction stream/API, persistent model serving, an alerting mechanism and a production dashboard backend.
-
----
-
-## 🔮 Future Scope
+The project can be extended with:
 
 - Real-time transaction streaming
-- Automated alert notifications
-- Model monitoring and drift detection
-- More robust fraud-risk scoring
+- Automated fraud alert generation
+- Model drift monitoring
 - Threshold optimization
-- Explainable AI for analyst decisions
+- Precision/recall tuning
+- Interactive fraud monitoring dashboard
+- Explainable AI for fraud-risk reasons
 - Cloud deployment
-- Database integration
-- Authentication and role-based dashboard access
 
 ---
 
-## 🛠️ Technologies
+## Project Status
 
-- Python
-- Pandas
-- NumPy
-- Scikit-learn
-- XGBoost
-- Matplotlib
-- Seaborn
-- Streamlit
-- Jupyter Notebook
-- Git & GitHub
+**Current Status:** Machine Learning Fraud Detection Pipeline + Dashboard Concept
+
+The current implementation demonstrates data analysis, behavioral feature engineering, XGBoost modeling and fraud-risk analysis.
+
+Real-time alert generation is planned as a future production enhancement.
 
 ---
 
-## 👩‍💻 Project
+## Interview Explanation
 
-**Finverse — Fraud Detection & Risk Monitoring**
+**30-second explanation:**
 
-Built as an academic/portfolio ML and analytics project using BankSim transaction data.
+> Finverse is an ML-based fraud detection project built using BankSim transaction data. I analyzed transaction patterns, created behavioral features using recent customer and customer-merchant transaction counts, and trained an XGBoost classifier. Since fraud is a highly imbalanced class, I used AUPRC for evaluation. The standard feature model achieved 0.8331 AUPRC, while feature engineering improved it to 0.8812. The project also provides the foundation for a risk-monitoring dashboard and automated alert workflow.
+
+---
+
+## Author
+
+**Vedisha Tiwari**
+
+Computer Science & Engineering
+
+GitHub: [Vedisha15](https://github.com/Vedisha15)
